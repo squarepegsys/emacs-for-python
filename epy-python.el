@@ -148,6 +148,7 @@ The CMDLINE should be something like:
 (add-hook 'python-mode-hook '(lambda () 
      (define-key python-mode-map "\C-m" 'newline-and-indent)))
 
+
 (require 'python)
 (setq
   python-shell-interpreter "ipython"
@@ -160,6 +161,5 @@ The CMDLINE should be something like:
     "';'.join(module_completion('''%s'''))\n"
   python-shell-completion-string-code
     "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
-"';'.join(get_ipython().Completer.all_completions('''%s'''))
 
 (provide 'epy-python)
