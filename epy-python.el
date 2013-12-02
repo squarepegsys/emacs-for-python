@@ -42,7 +42,7 @@
 
   ;; Adding hook to automatically open a rope project if there is one
   ;; in the current or in the upper level directory
-  (add-hook 'python-mode-hook
+   (add-hook 'python-mode-hook
             (lambda ()
               (cond ((file-exists-p ".ropeproject")
                      (rope-open-project default-directory))
@@ -55,26 +55,32 @@
 (defun epy-setup-ipython ()
   "Setup ipython integration with python-mode"
   (interactive)
+
   (setq
    python-shell-interpreter "ipython"
    python-shell-interpreter-args ""
    python-shell-prompt-regexp "In \[[0-9]+\]: "
    python-shell-prompt-output-regexp "Out\[[0-9]+\]: "
    python-shell-completion-setup-code ""
-   python-shell-completion-string-code "';'.join(__IP.complete('''%s'''))\n")
+   python-shell-completion-string-code "';'.join(get_ipython().complete('''%s''')[1])\n")
   )
 
 ;;=========================================================
 ;; Flymake additions, I have to put this one somwhere else?
 ;;=========================================================
 
+(defun flymake-create-temp-in-system-tempdir (filename prefix)
+  (make-temp-file (or prefix "flymake")))
+
 (defun flymake-create-copy-file ()
   "Create a copy local file"
   (let* ((temp-file (flymake-init-create-temp-buffer-copy 
-                     'flymake-create-temp-inplace)))
-    (file-relative-name 
+                     'flymake-create-temp-in-system-tempdir)))
+    (file-relative-name
      temp-file 
-     (file-name-directory buffer-file-name))))     
+     (file-name-directory buffer-file-name))
+    )
+  )   
 
 (defun flymake-command-parse (cmdline)
   "Parses the command line CMDLINE in a format compatible
@@ -110,7 +116,12 @@ The CMDLINE should be something like:
      ;;==================================================
      ;; Ropemacs Configuration
      ;;==================================================
-     (setup-ropemacs)
+     (add-hook 'python-mode-hook (lambda ()
+				   (when epy-enable-ropemacs
+				     (setup-ropemacs)
+				     (ropemacs-mode t))
+				   ))
+
 
      ;;==================================================
      ;; Virtualenv Commands
@@ -122,11 +133,12 @@ The CMDLINE should be something like:
      
      
      ;; Not on all modes, please
-     (add-hook 'python-mode-hook 'flymake-find-file-hook)
-
+     ;; Be careful of mumamo, buffer file name nil
+     (add-hook 'python-mode-hook (lambda () (if (buffer-file-name)
+						(flymake-mode))))
 
      ;; when we swich on the command line, switch in Emacs
-     (desktop-save-mode 1)
+     ;;(desktop-save-mode 1)
      (defun workon-postactivate (virtualenv)
        (require 'virtualenv)
        (virtualenv-activate virtualenv)
@@ -147,19 +159,7 @@ The CMDLINE should be something like:
 
 (add-hook 'python-mode-hook '(lambda () 
      (define-key python-mode-map "\C-m" 'newline-and-indent)))
-
-
-(require 'python)
-(setq
-  python-shell-interpreter "ipython"
-  python-shell-interpreter-args "--pylab"
-  python-shell-prompt-regexp "In \\[[0-9]+\\]: "
-  python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
-  python-shell-completion-setup-code
-    "from IPython.core.completerlib import module_completion"
-  python-shell-completion-module-string-code
-    "';'.join(module_completion('''%s'''))\n"
-  python-shell-completion-string-code
-    "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
-
+(add-hook 'ein:notebook-python-mode-hook 
+	  (lambda ()
+	    (define-key python-mode-map "\C-m" 'newline)))
 (provide 'epy-python)
