@@ -2046,126 +2046,129 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
 
 ;;; Skeletons
 
-(defcustom python-skeleton-autoinsert nil
-  "Non-nil means template skeletons will be automagically inserted.
-This happens when pressing \"if<SPACE>\", for example, to prompt for
-the if condition."
-  :type 'boolean
-  :group 'python
-  :safe 'booleanp)
+;(defcustom python-skeleton-autoinsert nil
+;  "Non-nil means template skeletons will be automagically inserted.
+;This happens when pressing \"if<SPACE>\", for example, to prompt for
+;the if condition."
+;  :type 'boolean
+;  :group 'python
+;  :safe 'booleanp)
 
-(defvar python-skeleton-available '()
-  "Internal list of available skeletons.")
+;(defvar python-skeleton-available '()
+;  "Internal list of available skeletons.")
 
-(define-abbrev-table 'python-mode-abbrev-table ()
-  "Abbrev table for Python mode."
-  :case-fixed t
-  ;; Allow / inside abbrevs.
-  :regexp "\\(?:^\\|[^/]\\)\\<\\([[:word:]/]+\\)\\W*"
-  ;; Only expand in code.
-  :enable-function (lambda ()
-                     (and
-                      (not (or (python-info-ppss-context 'string)
-                               (python-info-ppss-context 'comment)))
-                      python-skeleton-autoinsert)))
+;(define-abbrev-table 'python-mode-abbrev-table ()
+;  "Abbrev table for Python mode."
+;  :case-fixed t
+;  ;; Allow / inside abbrevs.
+;  :regexp "\\(?:^\\|[^/]\\)\\<\\([[:word:]/]+\\)\\W*"
+;  ;; Only expand in code.
+;  :enable-function (lambda ()
+;                     (and
+;                      (not (or (python-info-ppss-context 'string)
+;                               (python-info-ppss-context 'comment)))
+;                      python-skeleton-autoinsert)))
 
-(defmacro python-skeleton-define (name doc &rest skel)
-  "Define a `python-mode' skeleton using NAME DOC and SKEL.
-The skeleton will be bound to python-skeleton-NAME and will
-be added to `python-mode-abbrev-table'."
-  (let* ((name (symbol-name name))
-         (function-name (intern (concat "python-skeleton-" name))))
-    `(progn
-       (define-abbrev python-mode-abbrev-table ,name "" ',function-name)
-       (setq python-skeleton-available
-             (cons ',function-name python-skeleton-available))
-       (define-skeleton ,function-name
-         ,(or doc
-              (format "Insert %s statement." name))
-         ,@skel))))
-(put 'python-skeleton-define 'lisp-indent-function 2)
-
-(defmacro python-define-auxiliary-skeleton (name doc &optional &rest skel)
-  "Define a `python-mode' auxiliary skeleton using NAME DOC and SKEL.
-The skeleton will be bound to python-skeleton-NAME."
-  (let* ((name (symbol-name name))
-         (function-name (intern (concat "python-skeleton--" name)))
-         (msg (format
-               "Add '%s' clause? " name)))
-    (when (not skel)
-      (setq skel
-            `(< ,(format "%s:" name) \n \n
-                > _ \n)))
-    `(define-skeleton ,function-name
-       ,(or doc
-            (format "Auxiliary skeleton for %s statement." name))
-       nil
-       (unless (y-or-n-p ,msg)
-         (signal 'quit t))
-       ,@skel)))
-(put 'python-define-auxiliary-skeleton 'lisp-indent-function 2)
-
-(python-define-auxiliary-skeleton else nil)
-
-(python-define-auxiliary-skeleton except nil)
-
-(python-define-auxiliary-skeleton finally nil)
-
-(python-skeleton-define if nil
-  "Condition: "
-  "if " str ":" \n
-  _ \n
-  ("other condition, %s: "
-   <
-   "elif " str ":" \n
-   > _ \n nil)
-  '(python-skeleton--else) | ^)
-
-(python-skeleton-define while nil
-  "Condition: "
-  "while " str ":" \n
-  > _ \n
-  '(python-skeleton--else) | ^)
-
-(python-skeleton-define for nil
-  "Iteration spec: "
-  "for " str ":" \n
-  > _ \n
-  '(python-skeleton--else) | ^)
-
-(python-skeleton-define try nil
-  nil
-  "try:" \n
-  > _ \n
-  ("Exception, %s: "
-   <
-   "except " str ":" \n
-   > _ \n nil)
-  resume:
-  '(python-skeleton--except)
-  '(python-skeleton--else)
-  '(python-skeleton--finally) | ^)
-
-(python-skeleton-define def nil
-  "Function name: "
-  "def " str " ("  ("Parameter, %s: "
-                    (unless (equal ?\( (char-before)) ", ")
-                    str) "):" \n
-                    "\"\"\"" - "\"\"\"" \n
-                    > _ \n)
-
-(python-skeleton-define class nil
-  "Class name: "
-  "class " str " (" ("Inheritance, %s: "
-                     (unless (equal ?\( (char-before)) ", ")
-                     str)
-  & ")" | -2
-  ":" \n
-  "\"\"\"" - "\"\"\"" \n
-  > _ \n)
-
+;(defmacro python-skeleton-define (name doc &rest skel)
+;  "Define a `python-mode' skeleton using NAME DOC and SKEL.
+;The skeleton will be bound to python-skeleton-NAME and will
+;be added to `python-mode-abbrev-table'."
+;  (let* ((name (symbol-name name))
+;         (function-name (intern (concat "python-skeleton-" name))))
+;    `(progn
+;       (define-abbrev python-mode-abbrev-table ,name "" ',function-name)
+;       (setq python-skeleton-available
+;             (cons ',function-name python-skeleton-available))
+;       (define-skeleton ,function-name
+;         ,(or doc
+;              (format "Insert %s statement." name))
+;         ,@skel))))
+;(put 'python-skeleton-define 'lisp-indent-function 2)
+;
+;(defmacro python-define-auxiliary-skeleton (name doc &optional &rest skel)
+;  "Define a `python-mode' auxiliary skeleton using NAME DOC and SKEL.
+;The skeleton will be bound to python-skeleton-NAME."
+;  (let* ((name (symbol-name name))
+;         (function-name (intern (concat "python-skeleton--" name)))
+;         (msg (format
+;               "Add '%s' clause? " name)))
+;    (when (not skel)
+;      (setq skel
+;            `(< ,(format "%s:" name) \n \n
+;                > _ \n)))
+;    `(define-skeleton ,function-name
+;       ,(or doc
+;            (format "Auxiliary skeleton for %s statement." name))
+;       nil
+;       (unless (y-or-n-p ,msg)
+;         (signal 'quit t))
+;       ,@skel)))
+;(put 'python-define-auxiliary-skeleton 'lisp-indent-function 2)
+;
+;(python-define-auxiliary-skeleton else nil)
+;
+;(python-define-auxiliary-skeleton except nil)
+;
+;(python-define-auxiliary-skeleton finally nil)
+;
+;(python-skeleton-define if nil
+;  "Condition: "
+;  "if " str ":" \n
+;  _ \n
+;  ("other condition, %s: "
+;   <
+;   "elif " str ":" \n
+;   > _ \n nil)
+;  '(python-skeleton--else) | ^)
+;
+;(python-skeleton-define while nil
+;  "Condition: "
+;  "while " str ":" \n
+;  > _ \n
+;  '(python-skeleton--else) | ^)
+;
+;(python-skeleton-define for nil
+;  "Iteration spec: "
+;  "for " str ":" \n
+;  > _ \n
+;  '(python-skeleton--else) | ^)
+;
+;(python-skeleton-define try nil
+;  nil
+;  "try:" \n
+;  > _ \n
+;  ("Exception, %s: "
+;   <
+;   "except " str ":" \n
+;   > _ \n nil)
+;  resume:
+;  '(python-skeleton--except)
+;  '(python-skeleton--else)
+;  '(python-skeleton--finally) | ^)
+;
+;(python-skeleton-define def nil
+;  "Function name: "
+;  "def " str " ("  ("Parameter, %s: "
+;                    (unless (equal ?\( (char-before)) ", ")
+;                    str) "):" \n
+;                    "\"\"\"" - "\"\"\"" \n
+;                    > _ \n)
+;
+;(python-skeleton-define class nil
+;  "Class name: "
+;  "class " str " (" ("Inheritance, %s: "
+;                     (unless (equal ?\( (char-before)) ", ")
+;                     str)
+;  & ")" | -2
+;  ":" \n
+;  "\"\"\"" - "\"\"\"" \n
+;  > _ \n)
+;
 (defun python-skeleton-add-menu-items ()
   "Add menu items to Python->Skeletons menu."
+      (setq python-skeleton-available
+            (list))
+
   (let ((skeletons (sort python-skeleton-available 'string<))
         (items))
     (dolist (skeleton skeletons)
@@ -2174,9 +2177,9 @@ The skeleton will be bound to python-skeleton-NAME."
        `[,(format
            "Insert %s" (caddr (split-string (symbol-name skeleton) "-")))
          ,skeleton t]))))
-
-;;; FFAP
-
+;
+;;;; FFAP
+;
 (defcustom python-ffap-setup-code
   "def __FFAP_get_module_path(module):
     try:

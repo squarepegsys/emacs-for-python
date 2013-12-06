@@ -18,4 +18,7 @@
 
 
 
+(require 'python)
+
+
 (provide 'epy-init)
